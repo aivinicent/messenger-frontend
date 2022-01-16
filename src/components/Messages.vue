@@ -59,11 +59,18 @@ export default {
   }),
 
   created() {
-    fetch("http://localhost:8000/messages")
+    fetch("http://localhost:8080/messages")
       .then((response) => response.json())
       .then((data) => (this.messages = data));
 
     window.addEventListener("scroll", this.onScroll);
+
+    var socket = new WebSocket("ws://localhost:8080/live-messages");
+
+    socket.onmessage = function (event) {
+      this.messages.push(JSON.parse(event.data))
+      this.toDown()
+    }.bind(this);
   },
 
   destroyed() {
@@ -71,13 +78,14 @@ export default {
   },
 
   methods: {
+
     postMessage() {
       const requestOptions = {
         method: "POST",
         body: JSON.stringify({ body: this.newMessage }),
       };
 
-      fetch("http://localhost:8000/messages", requestOptions).then((response) =>
+      fetch("http://localhost:8080/messages", requestOptions).then((response) =>
         response.json()
       );
 
